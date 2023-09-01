@@ -6,8 +6,8 @@ const { requireUser, requiredNotSent } = require('./utils')
 // GET /api/activities/:activityId/routines
 router.get('/:activityId/routines', async (req, res, next) => {
   try {
-    const routines = await getPublicRoutinesByActivity({id: req.params.activityId});
-    if(routines) {
+    const routines = await getPublicRoutinesByActivity({ id: req.params.activityId });
+    if (routines) {
       res.send(routines);
     } else {
       next({
@@ -30,19 +30,29 @@ router.get('/', async (req, res, next) => {
   }
 })
 
-// POST /api/activities
-router.post('/', requireUser, requiredNotSent({requiredParams: ['name', 'description']}), async (req, res, next) => {
+// GET /api/activities/:ID
+router.get('/:id', async (req, res, next) => {
   try {
-    const {name, description} = req.body;
+    const activity = await getActivityById(req.params.id);
+    res.send(activity);
+  } catch (error) {
+    next(error)
+  }
+})
+
+// POST /api/activities
+router.post('/', requireUser, requiredNotSent({ requiredParams: ['name', 'description'] }), async (req, res, next) => {
+  try {
+    const { name, description } = req.body;
     const existingActivity = await getActivityByName(name);
-    if(existingActivity) {
+    if (existingActivity) {
       next({
         name: 'NotFound',
         message: `An activity with name ${name} already exists`
       });
     } else {
-      const createdActivity = await createActivity({name, description});
-      if(createdActivity) {
+      const createdActivity = await createActivity({ name, description });
+      if (createdActivity) {
         res.send(createdActivity);
       } else {
         next({
@@ -57,19 +67,19 @@ router.post('/', requireUser, requiredNotSent({requiredParams: ['name', 'descrip
 });
 
 // PATCH /api/activities/:activityId
-router.patch('/:activityId', requireUser, requiredNotSent({requiredParams: ['name', 'description'], atLeastOne: true}), async (req, res, next) => {
+router.patch('/:activityId', requireUser, requiredNotSent({ requiredParams: ['name', 'description'], atLeastOne: true }), async (req, res, next) => {
   try {
-    const {activityId} = req.params;
+    const { activityId } = req.params;
     const existingActivity = await getActivityById(activityId);
-    if(!existingActivity) {
+    if (!existingActivity) {
       next({
         name: 'NotFound',
         message: `No activity by ID ${activityId}`
       });
     } else {
-      const {name, description} = req.body;
-      const updatedActivity = await updateActivity({id: activityId, name, description})
-      if(updatedActivity) {
+      const { name, description } = req.body;
+      const updatedActivity = await updateActivity({ id: activityId, name, description })
+      if (updatedActivity) {
         res.send(updatedActivity);
       } else {
         next({
